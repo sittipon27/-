@@ -125,7 +125,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(rgba(12,8,2,0.85), rgba(12,8,2,0.85)), url('images/guide.png') center/cover no-repeat;
+            background: linear-gradient(rgba(12,8,2,0.45), rgba(12,8,2,0.45)), url('images/guide.png') center/cover no-repeat;
             background-blend-mode: multiply;
             z-index: 2000;
             display: flex;
@@ -168,9 +168,9 @@
             padding: 18px;
             border: 1px solid rgba(255, 255, 255, 0.16);
             border-radius: 18px;
-            background: rgba(22, 14, 8, 0.42);
+            background: rgba(22, 14, 8, 0.28);
             box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 0 18px rgba(0,0,0,0.14);
-            backdrop-filter: blur(2px);
+            backdrop-filter: blur(0px);
         }
         #intro-screen .intro-card-title { font-size: 1rem; font-weight: bold; margin-bottom: 10px; color: #ffd87e; }
         #intro-screen .intro-card p { margin: 0 0 10px 0; line-height: 1.5; color: #f0e3b9; }
@@ -388,12 +388,6 @@
         document.getElementById('video-overlay').style.display = 'none';
         bgMusic.pause();
         document.getElementById('bg-video').pause();
-    }
-        document.getElementById('intro-screen').style.display = 'flex';
-        document.getElementById('top-wrapper').style.display = 'none';
-        document.getElementById('bottom-info-bar').style.display = 'none';
-        document.getElementById('bg-video').style.display = 'none';
-        document.getElementById('video-overlay').style.display = 'none';
     }
 
     function toggleMusic(e) {
