@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>The Pixel Prophecy - Epic V15</title>
+    <link href="https://fonts.googleapis.com/css2?family=Krub:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pixel-bg: #1a1a1d;
+            --pixel-border: #000000;
+            --pixel-panel: #2d2d30;
+            --pixel-gold: #ffcc00;
+            --pixel-white: #ffffff;
+        }
+
+        body {
+            margin: 0; padding: 0; font-family: 'Krub', sans-serif;
+            background-color: var(--pixel-bg);
+            color: var(--pixel-white);
+            height: 100vh; overflow: hidden;
+            display: flex; flex-direction: column;
+        }
+        #bg-video {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;
+            z-index: -2; pointer-events: none;
+        }
+        #video-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.25);
+            z-index: -1; pointer-events: none;
+        }
+
+        /* --- Layout Structures --- */
+        #top-wrapper { display: flex; flex-grow: 1; overflow: hidden; padding: 20px; gap: 20px; }
+        #left-container { width: 65%; display: flex; flex-direction: column; gap: 15px; }
+        #right-container { width: 35%; display: flex; flex-direction: column; gap: 15px; }
+
+        .pixel-box {
+            background: rgba(45,45,48,0.45);
+            border: 4px solid var(--pixel-border);
+            box-shadow: inset -4px -4px 0px 0px #111, inset 4px 4px 0px 0px #555;
+            padding: 12px; position: relative; display: flex; flex-direction: column;
+        }
+
+        .pixel-box.pixel-frame-strong {
+            box-shadow: inset -4px -4px 0px 0px #111, inset 4px 4px 0px 0px #555, 0 0 0 4px rgba(0,0,0,0.75);
+        }
+
+        .header-title {
+            text-align: center; color: var(--pixel-gold);
+            margin: 0 0 10px 0; font-weight: bold;
+            letter-spacing: 1px; text-shadow: 2px 2px #000;
+            border-bottom: 2px solid #444; padding-bottom: 5px;
+        }
+
+        /* --- Table Styling --- */
+        .table-container { flex-grow: 1; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: rgba(17,17,17,0.55); color: var(--pixel-gold); padding: 12px; border: 2px solid #000; position: sticky; top: 0; z-index: 5; }
+        td { padding: 10px; text-align: center; border: 2px solid #000; background: rgba(62,62,66,0.45); font-weight: bold; }
+
+        /* --- Class Colors --- */
+        .row-master td { background: #4b0082 !important; color: #e0aaff !important; }
+        .row-gold td { background: #856404 !important; color: #ffcc00 !important; }
+        .row-silver td { background: #495057 !important; color: #ced4da !important; }
+        .row-blood td { background: #600 !important; color: #ff4d4d !important; }
+
+        /* --- Locked Side Windows --- */
+        .side-window { height: 50%; overflow: hidden; }
+        #right-container { position: relative; }
+        #log-display { flex-grow: 1; overflow-y: auto; background: rgba(0,0,0,0.35); color: #0f0; font-family: monospace; padding: 8px; border: 2px solid #000; }
+        #shop-display { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px; }
+        #shop-display > .shop-item { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; background: rgba(17,17,17,0.65); border: 2px solid #333; padding: 8px 10px; font-size: 0.78rem; }
+        #shop-display > .shop-item span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #shop-display > .shop-item button { min-width: 52px; }
+
+        /* --- Buttons --- */
+        .btn-pixel { padding: 6px 12px; border: 2px solid #000; cursor: pointer; font-weight: bold; box-shadow: inset -2px -2px 0px #444; color: white; transition: 0.1s; font-size: 0.85rem; }
+        .btn-add { background: #28a745; }
+        .btn-sub { background: #dc3545; }
+        .btn-retire { background: #fd7e14; }
+        .btn-audio { background: #34495e; min-width: 90px; }
+        .btn-pixel:active { transform: translate(2px, 2px); box-shadow: none; }
+        .btn-off { background: #555 !important; color: #aaa !important; box-shadow: none !important; }
+
+        /* --- Info Bar --- */
+        #bottom-info-bar { background: rgba(0,0,0,0.35); border-top: 4px solid var(--pixel-gold); padding: 12px; display: flex; gap: 10px; height: 120px; }
+        .skill-desc { flex: 1; border: 2px solid #333; padding: 10px; background: rgba(30,30,30,0.45); font-size: 0.8rem; line-height: 1.5; color: #ddd; }
+        .skill-desc strong { color: var(--pixel-gold); display: block; margin-bottom: 5px; font-size: 0.9rem; }
+
+        #skill-pop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        #skill-pop-content { width: 320px; padding: 22px; background: rgba(0,0,0,0.8); border: 3px solid #222; border-radius: 16px; text-align: center; box-shadow: 0 0 0 4px rgba(255,204,0,0.12), 0 0 20px rgba(255,204,0,0.08); }
+        #pop-icon { width: 280px; height: 320px; object-fit: contain; display: block; margin: 0 auto 15px; border: 2px solid rgba(255,255,255,0.08); border-radius: 10px; box-shadow: inset 0 0 12px rgba(255,255,255,0.05); }
+        #pop-icon-fallback { font-size: 4rem; line-height: 1; color: var(--pixel-gold); display: none; margin: 0 auto 15px; }
+
+        #ghost1, #ghost2 {
+            position: fixed;
+            font-size: 2rem;
+            top: 10%;
+            left: 10%;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.7));
+            opacity: 0.85;
+            pointer-events: none;
+            transition: top 8s ease, left 8s ease, transform 4s ease;
+            animation: ghostFloat 5s ease-in-out infinite alternate;
+            z-index: 999;
+        }
+        #ghost1 { animation-duration: 8.5s; }
+        #ghost2 { animation-duration: 9.5s; }
+        @keyframes ghostFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-18px); }
+        }
+        .health-cell { display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .heart-icon { font-size: 1rem; }
+        .blood-bar { display: inline-flex; gap: 4px; }
+        .blood-segment { width: 10px; height: 12px; border: 1px solid #aaa; background: rgba(255,255,255,0.08); border-radius: 2px; }
+        .blood-segment.fill { background: #ff4d4d; box-shadow: 0 0 8px rgba(255,77,77,0.6); }
+        input, select { background: rgba(17,17,17,0.8); color: #fff; border: 2px solid #555; padding: 6px; }
+
+        #intro-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(12,8,2,0.85), rgba(12,8,2,0.85)), url('images/คู่มือ.png') center/cover no-repeat;
+            background-blend-mode: multiply;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        #intro-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(8,5,2,0.15), rgba(8,5,2,0.15)), url('images/คู่มือ.png') center/cover no-repeat;
+            background-blend-mode: multiply;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        #intro-screen .intro-header {
+            width: 100%;
+            max-width: 1200px;
+            text-align: center;
+            margin-bottom: 18px;
+        }
+        #intro-screen .intro-header .header-title {
+            display: inline-block;
+            background: rgba(25, 16, 8, 0.6);
+            padding: 14px 20px;
+            border: 2px solid rgba(255, 215, 130, 0.45);
+            border-radius: 24px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.2);
+        }
+        #intro-screen .intro-grid {
+            display: flex;
+            gap: 18px;
+            width: 100%;
+            max-width: 1200px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        #intro-screen .intro-card {
+            flex: 0 0 calc((100% - 5 * 18px) / 6);
+            min-width: 180px;
+            max-width: 220px;
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 18px;
+            background: rgba(22, 14, 8, 0.42);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 0 18px rgba(0,0,0,0.14);
+            backdrop-filter: blur(2px);
+        }
+        #intro-screen .intro-card-title { font-size: 1rem; font-weight: bold; margin-bottom: 10px; color: #ffd87e; }
+        #intro-screen .intro-card p { margin: 0 0 10px 0; line-height: 1.5; color: #f0e3b9; }
+        #intro-screen .intro-card ul { margin: 0; padding-left: 18px; color: #f0e3b9; }
+        #intro-screen .intro-card li { margin-bottom: 6px; }
+        .btn-book { background: #8d6b30; color: #fff; border-color: #5f4617; }
+        .btn-book:hover { background: #a9823f; }
+    </style>
+</head>
+<body onclick="initMusic()">
+    <div id="intro-screen">
+        <div class="intro-header">
+            <div class="header-title">📖 คู่มือการเล่น - The Pixel Prophecy</div>
+        </div>
+        <div class="intro-grid">
+            <div class="intro-card">
+                <div class="intro-card-title">🎯 วัตถุประสงค์ของเกม</div>
+                <p>สะสมคะแนนทองคำให้มากที่สุดเพื่อขึ้นอันดับในทำเนียบเกียรติยศ</p>
+                <p>หากเลือดเหลือ 0 จะสูญเสียคะแนนทั้งหมดและเริ่มใหม่</p>
+            </div>
+            <div class="intro-card">
+                <div class="intro-card-title">⚔️ อาชีพและสกิล</div>
+                <ul>
+                    <li><strong>🛡️ นักรบโล่ (Shield):</strong> รับโบนัสสะท้อน +10 เมื่อได้รับ +5</li>
+                    <li><strong>🔮 จอมเวท (Mage):</strong> ป้องกันไม่ให้ผู้คะแนนน้อยกว่ารับคะแนน</li>
+                    <li><strong>🗡️ นักฆ่า (Assassin):</strong> ขโมยทองจากผู้ที่คะแนนสูงกว่า</li>
+                    <li><strong>🏹 นักธนู (Archer):</strong> ขัดขวางการได้รับคะแนนของผู้อื่น</li>
+                    <li><strong>✨ นักบวช (Priest):</strong> ป้องกันการถูกหักคะแนน</li>
+                </ul>
+            </div>
+            <div class="intro-card">
+                <div class="intro-card-title">❤️ ระบบหลอดเลือด</div>
+                <p>หลอดเลือด 4 ขีด แสดงในตารางของแต่ละขุนพล</p>
+                <ul>
+                    <li>ติดลบ 4 ครั้งจะลดเลือด 1 ขีด</li>
+                    <li>เพิ่ม 4 ครั้งจะฟื้นเลือด 1 ขีด</li>
+                    <li>เลือด = 0 จะรีเซ็ตคะแนนทั้งหมดเป็น 0</li>
+                </ul>
+            </div>
+            <div class="intro-card">
+                <div class="intro-card-title">🪙 ระบบเพิ่ม/ลดคะแนน</div>
+                <p>ใช้ปุ่ม + และ - เพื่อแก้ไขคะแนน 5 ทองต่อที</p>
+                <p>สกิลอาชีพมีโอกาสทำงานตามฐานันดร</p>
+            </div>
+            <div class="intro-card">
+                <div class="intro-card-title">⚖️ ระบบร้านค้า</div>
+                <p>ซื้อคัมภีร์เพื่อเพิ่มโอกาสสกิล +5%</p>
+                <p>ราคา 50 ทองต่อคัมภีร์</p>
+            </div>
+            <div class="intro-card">
+                <div class="intro-card-title">🎵 ระบบเสียง</div>
+                <p>เปิด/ปิด BGM และ SFX ได้จากปุ่มมุมบนซ้าย</p>
+                <p>ช่วยเพิ่มบรรยากาศการเล่น</p>
+            </div>
+            <div class="intro-card">
+                <div class="intro-card-title">📜 เริ่มต้นการผจญภัย</div>
+                <p>อ่านคู่มือให้ครบก่อนเข้าเกม</p>
+                <p>กด START เพื่อเข้าสู่โลกบอร์ดคะแนน</p>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="btn-pixel btn-add btn-book" style="font-size: 1.2rem; padding: 12px 24px;" onclick="startGame()">START เริ่มเกม</button>
+        </div>
+    </div>
+
+    <video id="bg-video" autoplay muted loop playsinline style="display: none;">
+        <source src="videos/bg_animate.mp4" type="video/mp4">
+    </video>
+    <div id="video-overlay" style="display: none;"></div>
+
+<audio id="bg-music" loop>
+    <source src="audio/bg_fantasy_theme.mp3" type="audio/mpeg">
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" type="audio/mpeg">
+</audio>
+<audio id="sfx-add">
+    <source src="audio/sfx_add.mp3" type="audio/mpeg">
+    <source src="https://assets.mixkit.co/active_storage/sfx/1126/1126-preview.mp3" type="audio/mpeg">
+</audio>
+<audio id="sfx-sub">
+    <source src="audio/sfx_sub.mp3" type="audio/mpeg">
+    <source src="https://assets.mixkit.co/active_storage/sfx/1124/1124-preview.mp3" type="audio/mpeg">
+</audio>
+<audio id="sfx-skill">
+    <source src="audio/sfx_skill.mp3" type="audio/mpeg">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3" type="audio/mpeg">
+</audio>
+
+<div id="top-wrapper" style="display: none;">
+    <div id="left-container">
+        <div class="pixel-box" style="flex-direction: row; gap: 10px; align-items: center;">
+            <strong style="color:var(--pixel-gold); white-space: nowrap;">⚔️ อัญเชิญ:</strong>
+            <input type="text" id="in-name" placeholder="ระบุนามขุนพล..." style="width: 150px;">
+            <select id="in-job">
+                <option value="Shield">🛡️ นักรบโล่</option>
+                <option value="Mage">🔮 จอมเวท</option>
+                <option value="Assassin">🗡️ นักฆ่า</option>
+                <option value="Archer">🏹 นักธนู</option>
+                <option value="Priest">✨ นักบวช</option>
+            </select>
+            <button class="btn-pixel btn-add" onclick="summonHero()">จุติในสนามรบ</button>
+            
+            <div style="width: 2px; height: 30px; background: #555; margin: 0 5px;"></div>
+            
+            <button id="btn-music" class="btn-pixel btn-audio" onclick="toggleMusic(event)">🎵 BGM: ON</button>
+            <button id="btn-sfx" class="btn-pixel btn-audio" onclick="toggleSFX(event)">🔊 SFX: ON</button>
+            <button class="btn-pixel btn-book" onclick="showIntro()">📜 คู่มือ</button>
+        </div>
+
+        <div class="pixel-box pixel-frame-strong" style="flex-grow: 1; overflow: hidden;">
+            <div class="header-title">🏆 ทำเนียบเกียรติยศวีรชน 🏆</div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ลำดับ</th><th>นามขุนพล</th><th>อาชีพ</th><th>เลือด</th><th>ทองคำ</th><th>เร้นลับ</th><th>ฐานันดร</th><th>ลิขิตชะตา</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hero-table"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="right-container">
+        <div class="pixel-box pixel-frame-strong side-window">
+            <div class="header-title">📜 จดหมายเหตุแห่งสมรภูมิ</div>
+            <div id="log-display"></div>
+        </div>
+        
+        <div class="pixel-box pixel-frame-strong side-window">
+            <div class="header-title">⚖️ สมาคมการค้าลี้ลับ</div>
+            <div style="padding-bottom:10px;">
+                <select id="buyer-select" style="width:100%;"></select>
+            </div>
+            <div id="shop-display"></div>
+        </div>
+        <div id="ghost1" aria-hidden="true">👻</div>
+        <div id="ghost2" aria-hidden="true">👻</div>
+    </div>
+</div>
+
+<div id="bottom-info-bar" style="display: none;">
+    <div class="skill-desc">
+        <strong>🛡️ นักรบโล่ (Shield)</strong>
+        หากได้รับพร 5 เหรียญ จะมีโอกาสเปลี่ยนเป็นรับโบนัส 10 เหรียญทันทีจากพลังป้องกันสะท้อนโชคลาภ
+        <br><span style="color:#777;">(โอกาส 10-25% ตามฐานันดร)</span>
+    </div>
+    <div class="skill-desc">
+        <strong>🔮 จอมเวท (Mage)</strong>
+        ยิ่งฐานันดรสูงขึ้น จะยิ่งมีโอกาสใช้เขตแดนมนตราป้องกันไม่ให้ผู้ที่คะแนนน้อยกว่าได้รับคะแนนในรอบนั้น
+        <br><span style="color:#777;">(โอกาส 10-25% ตามฐานันดร)</span>
+    </div>
+    <div class="skill-desc">
+        <strong>🗡️ นักฆ่า (Assassin)</strong>
+        เมื่อได้รับคะแนน มีโอกาสลอบขโมยเหรียญจากผู้ที่มีคะแนนสูงกว่ามาเป็นของตนเอง 10-100 เหรียญ
+        <br><span style="color:#777;">(โอกาส 10-25% ตามฐานันดร)</span>
+    </div>
+    <div class="skill-desc">
+        <strong>🏹 นักธนู (Archer)</strong>
+        ไม่ว่าคะแนนเป้าหมายจะสูงหรือต่ำ มีโอกาสยิงศรขัดขวางการได้รับคะแนนของผู้อื่นในสมรภูมิได้ทุกเมื่อ
+        <br><span style="color:#777;">(โอกาส 10-25% ตามฐานันดร)</span>
+    </div>
+    <div class="skill-desc">
+        <strong>✨ นักบวช (Priest)</strong>
+        ใช้ปาฏิหาริย์ป้องกันการถูกหักคะแนน ทั้งจากคำสั่งลงทัณฑ์หรือจากคมดาบสกิลของอาชีพอื่นๆ รอบตัว
+        <br><span style="color:#777;">(โอกาส 10-25% ตามฐานันดร)</span>
+    </div>
+</div>
+
+<div id="skill-pop" style="display: none;">
+    <div id="skill-pop-content">
+        <img id="pop-icon" alt="Skill character" src="" />
+        <div id="pop-icon-fallback"></div>
+        <h1 id="pop-text" style="color: var(--pixel-gold); font-size: 2.2rem; text-shadow: 0 0 10px #fff; margin: 0;"></h1>
+    </div>
+</div>
+
+<script>
+    let adventurers = JSON.parse(localStorage.getItem('pixel_v15_db')) || [];
+    let skillTimeout;
+    let skillTriggerCount = 0;
+    let sfxEnabled = true;
+    let musicInitialized = false;
+
+    // --- Audio Logic ---
+    const bgMusic = document.getElementById('bg-music');
+    const sfxAdd = document.getElementById('sfx-add');
+    const sfxSub = document.getElementById('sfx-sub');
+    const sfxSkill = document.getElementById('sfx-skill');
+
+    function initMusic() {
+        if (!musicInitialized) {
+            bgMusic.play().catch(() => {});
+            musicInitialized = true;
+        }
+    }
+
+    function startGame() {
+        document.getElementById('intro-screen').style.display = 'none';
+        document.getElementById('top-wrapper').style.display = 'flex';
+        document.getElementById('bottom-info-bar').style.display = 'flex';
+        document.getElementById('bg-video').style.display = 'block';
+        document.getElementById('video-overlay').style.display = 'block';
+        initGhosts();
+        saveAndRender();
+    }
+
+    function showIntro() {
+        document.getElementById('intro-screen').style.display = 'flex';
+        document.getElementById('top-wrapper').style.display = 'none';
+        document.getElementById('bottom-info-bar').style.display = 'none';
+        document.getElementById('bg-video').style.display = 'none';
+        document.getElementById('video-overlay').style.display = 'none';
+    }
+
+    function toggleMusic(e) {
+        e.stopPropagation();
+        const btn = document.getElementById('btn-music');
+        if (bgMusic.paused) {
+            bgMusic.play();
+            btn.innerText = "🎵 BGM: ON";
+            btn.classList.remove('btn-off');
+        } else {
+            bgMusic.pause();
+            btn.innerText = "🎵 BGM: OFF";
+            btn.classList.add('btn-off');
+        }
+    }
+
+    function toggleSFX(e) {
+        e.stopPropagation();
+        const btn = document.getElementById('btn-sfx');
+        sfxEnabled = !sfxEnabled;
+        if (sfxEnabled) {
+            btn.innerText = "🔊 SFX: ON";
+            btn.classList.remove('btn-off');
+        } else {
+            btn.innerText = "🔊 SFX: OFF";
+            btn.classList.add('btn-off');
+        }
+    }
+
+    function playSFX(audio) {
+        if (sfxEnabled) {
+            audio.currentTime = 0;
+            audio.play().catch(() => {});
+        }
+    }
+
+    const jobs = {
+        Shield: { i: "🛡️", t: "นักรบโล่" },
+        Mage: { i: "🔮", t: "จอมเวท" },
+        Assassin: { i: "🗡️", t: "นักฆ่า" },
+        Archer: { i: "🏹", t: "นักธนู" },
+        Priest: { i: "✨", t: "นักบวช" }
+    };
+
+    function saveAndRender() {
+        localStorage.setItem('pixel_v15_db', JSON.stringify(adventurers));
+        render();
+    }
+
+    function getRank(score) {
+        if(score < 0) return { n: 'คำสาปสีเลือด', c: 'row-blood', base: 0 };
+        if(score >= 500) return { n: 'มหาจอมพล', c: 'row-master', base: 25 };
+        if(score >= 200) return { n: 'ขุนพลทองคำ', c: 'row-gold', base: 20 };
+        if(score >= 100) return { n: 'อัศวินสีเงิน', c: 'row-silver', base: 15 };
+        return { n: 'ทหารรับจ้าง', c: 'row-bronze', base: 10 };
+    }
+
+    function triggerSkillUI(hero, msg) {
+        playSFX(sfxSkill);
+        skillTriggerCount += 1;
+        if (skillTriggerCount >= 5) {
+            skillTriggerCount = 0;
+            adventurers.forEach(a => a.health = Math.max(0, a.health - 1));
+            addLog(`💀 สกิลครบ 5 ครั้ง ทำให้เลือดทุกคนลดลง 1 ขีด`);
+        }
+        const pop = document.getElementById('skill-pop');
+        const popIcon = document.getElementById('pop-icon');
+        const popFallback = document.getElementById('pop-icon-fallback');
+        popFallback.style.display = 'none';
+        popIcon.style.display = 'block';
+        popIcon.onerror = () => {
+            popIcon.style.display = 'none';
+            popFallback.innerText = jobs[hero.job].i;
+            popFallback.style.display = 'block';
+        };
+        popIcon.onload = () => {
+            popFallback.style.display = 'none';
+        };
+        popIcon.src = `${hero.job}.png`;
+        popIcon.alt = `${jobs[hero.job].t}`;
+        document.getElementById('pop-text').innerHTML = msg;
+        pop.style.display = 'flex';
+        addLog(`[SKILL] ${msg}`);
+        clearTimeout(skillTimeout);
+        skillTimeout = setTimeout(() => pop.style.display = 'none', 4500);
+    }
+
+    function summonHero() {
+        const name = document.getElementById('in-name').value;
+        const job = document.getElementById('in-job').value;
+        if(!name) return;
+        adventurers.push({ name, job, score: 0, scrollBonus: 0, health: 4, damageHits: 0, gainHits: 0 });
+        document.getElementById('in-name').value = '';
+        addLog(`✨ [${name}] จุติในฐานะ ${jobs[job].t}`);
+        saveAndRender();
+        initMusic();
+    }
+
+    function retireHero(idx) {
+        if(confirm(`ยืนยันการถอนตัวของ [${adventurers[idx].name}]?`)) {
+            addLog(`🚩 ${adventurers[idx].name} หายไปจากตำนาน...`);
+            adventurers.splice(idx, 1);
+            saveAndRender();
+        }
+    }
+
+    function adjustScore(idx, amt) {
+        let target = adventurers[idx];
+        let actualAmt = amt;
+        let baseChance = getRank(target.score).base + (target.scrollBonus || 0);
+
+        if (amt < 0) {
+            if (target.job === 'Priest' && Math.random() * 100 < baseChance) {
+                triggerSkillUI(target, `✨ ${target.name} ใช้สกิลปาฏิหาริย์ป้องกันการลดคะแนนให้ตัวเอง`);
+                actualAmt = 0;
+            } else {
+                playSFX(sfxSub);
+            }
+        }
+
+        if (amt > 0) {
+            let blocked = false;
+            for(let a of adventurers) {
+                if(a !== target && a.job === 'Archer' && Math.random() * 100 < (getRank(a.score).base + a.scrollBonus)) {
+                    triggerSkillUI(a, `🏹 ${a.name} ใช้สกิลยิงศรสกัดกั้น ${target.name}`);
+                    blocked = true; break;
+                }
+            }
+            if(!blocked) {
+                playSFX(sfxAdd);
+                if(amt === 5 && target.job === 'Shield' && Math.random() * 100 < baseChance) {
+                    triggerSkillUI(target, `🛡️ ${target.name} ใช้สกิลโล่สะท้อน เพิ่มทองตัวเองเป็น 10`);
+                    actualAmt = 10;
+                }
+                if(target.job === 'Assassin' && Math.random() * 100 < baseChance) {
+                    let richer = adventurers.filter(x => x.score > target.score);
+                    if(richer.length > 0) {
+                        let victim = richer[Math.floor(Math.random()*richer.length)];
+                        let steal = Math.floor(Math.random()*91)+10;
+                        adventurers[adventurers.indexOf(victim)].score -= steal;
+                        actualAmt += steal;
+                        triggerSkillUI(target, `🗡️ ${target.name} ใช้สกิลลอบขโมย ${steal} จาก ${victim.name}`);
+                    }
+                }
+            } else { actualAmt = 0; }
+        }
+
+        if (amt === -5 && actualAmt < 0) {
+            target.damageHits = (target.damageHits || 0) + 1;
+            if (target.damageHits >= 4) {
+                target.damageHits -= 4;
+                target.health = Math.max(0, (target.health || 4) - 1);
+                addLog(`🩸 ${target.name} ถูกลดเลือด 1 ขีด จากการเสียคะแนน 20!`);
+                if (target.health <= 0) {
+                    target.score = 0;
+                    target.health = 4;
+                    target.damageHits = 0;
+                    target.gainHits = 0;
+                    addLog(`💀 ${target.name} เลือดหมด! สูญเสียคะแนนทั้งหมดและเริ่มใหม่`);
+                }
+            }
+        }
+
+        if (amt === 5 && actualAmt > 0) {
+            target.gainHits = (target.gainHits || 0) + 1;
+            if (target.gainHits >= 4) {
+                target.gainHits -= 4;
+                target.health = Math.min(4, (target.health || 4) + 1);
+                addLog(`❤️ ${target.name} ฟื้นเลือด 1 ขีด จากการได้รับคะแนน 20!`);
+            }
+        }
+
+        target.score += actualAmt;
+        addLog(`🪙 ${target.name} ${actualAmt >= 0 ? '+'+actualAmt : actualAmt} ทอง`);
+        saveAndRender();
+    }
+
+    function render() {
+        const table = document.getElementById('hero-table');
+        const buyer = document.getElementById('buyer-select');
+        table.innerHTML = '';
+        buyer.innerHTML = '<option value="">-- เลือกวีรชน --</option>';
+
+        let changed = false;
+        adventurers.forEach(hero => {
+            if (hero.health == null) { hero.health = 4; changed = true; }
+            if (hero.damageHits == null) { hero.damageHits = 0; changed = true; }
+            if (hero.gainHits == null) { hero.gainHits = 0; changed = true; }
+        });
+        if (changed) {
+            localStorage.setItem('pixel_v15_db', JSON.stringify(adventurers));
+        }
+        const sorted = [...adventurers].sort((a,b) => b.score - a.score);
+        sorted.forEach((a, i) => {
+            const rIdx = adventurers.indexOf(a);
+            const rank = getRank(a.score);
+            table.innerHTML += `
+                <tr class="${rank.c}">
+                    <td>#${i+1}</td>
+                    <td>${a.name}</td>
+                    <td>${jobs[a.job].i} ${jobs[a.job].t}</td>
+                    <td>${renderHealth(a.health)}</td>
+                    <td style="color:var(--pixel-gold);">${a.score}G</td>
+                    <td>${rank.base + (a.scrollBonus || 0)}%</td>
+                    <td>${rank.n}</td>
+                    <td>
+                        <button class="btn-pixel btn-add" onclick="adjustScore(${rIdx}, 5)">+</button>
+                        <button class="btn-pixel btn-sub" onclick="adjustScore(${rIdx}, -5)">-</button>
+                        <button class="btn-pixel btn-retire" onclick="retireHero(${rIdx})">🚩</button>
+                    </td>
+                </tr>
+            `;
+            buyer.innerHTML += `<option value="${rIdx}">${a.name} (${a.score}G)</option>`;
+        });
+        renderShop();
+    }
+
+    function renderShop() {
+        const shop = document.getElementById('shop-display');
+        shop.innerHTML = '';
+        Object.keys(jobs).forEach(k => {
+            shop.innerHTML += `<div class="shop-item">
+                <span>📜 คัมภีร์${jobs[k].t} (+5%)</span>
+                <button class="btn-pixel btn-add" onclick="buyItem('${k}')">50G</button>
+            </div>`;
+        });
+    }
+
+    function renderHealth(health) {
+        const currentHealth = Math.max(0, Math.min(4, health == null ? 4 : health));
+        const hearts = `<span class="heart-icon">❤️</span>`;
+        let bars = '';
+        for (let i = 0; i < 4; i++) {
+            bars += `<span class="blood-segment ${i < currentHealth ? 'fill' : ''}"></span>`;
+        }
+        return `${hearts}<span class="blood-bar">${bars}</span>`;
+    }
+
+    function randomGhostPosition(id) {
+        const ghost = document.getElementById(id);
+        if (!ghost) return;
+        const maxX = window.innerWidth - ghost.offsetWidth - 24;
+        const maxY = window.innerHeight - ghost.offsetHeight - 24;
+        const x = Math.max(12, Math.random() * maxX);
+        const y = Math.max(12, Math.random() * maxY);
+        ghost.style.left = `${x}px`;
+        ghost.style.top = `${y}px`;
+    }
+
+    function buyItem(jobKey) {
+        const idx = document.getElementById('buyer-select').value;
+        if(idx === "") return;
+        let a = adventurers[idx];
+        if(a.job !== jobKey || a.score < 50) return;
+        a.score -= 50; a.scrollBonus += 5;
+        playSFX(sfxAdd);
+        addLog(`⚖️ ${a.name} อัปเกรดคัมภีร์สำเร็จ!`);
+        saveAndRender();
+    }
+
+    function addLog(msg) {
+        const log = document.getElementById('log-display');
+        log.innerHTML = `<div>> ${msg}</div>` + log.innerHTML;
+    }
+
+    function initGhosts() {
+        randomGhostPosition('ghost1');
+        randomGhostPosition('ghost2');
+        setInterval(() => randomGhostPosition('ghost1'), 8200);
+        setInterval(() => randomGhostPosition('ghost2'), 11000);
+    }
+
+    render();
+    window.addEventListener('resize', () => {
+        randomGhostPosition('ghost1');
+        randomGhostPosition('ghost2');
+    });
+</script>
+</body>
+</html>
