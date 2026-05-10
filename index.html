@@ -125,23 +125,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(rgba(12,8,2,0.85), rgba(12,8,2,0.85)), url('images/คู่มือ.png') center/cover no-repeat;
-            background-blend-mode: multiply;
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        #intro-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(rgba(8,5,2,0.15), rgba(8,5,2,0.15)), url('images/คู่มือ.png') center/cover no-repeat;
+            background: linear-gradient(rgba(12,8,2,0.85), rgba(12,8,2,0.85)), url('images/guide.png') center/cover no-repeat;
             background-blend-mode: multiply;
             z-index: 2000;
             display: flex;
@@ -196,7 +180,7 @@
         .btn-book:hover { background: #a9823f; }
     </style>
 </head>
-<body onclick="initMusic()">
+<body>
     <div id="intro-screen">
         <div class="intro-header">
             <div class="header-title">📖 คู่มือการเล่น - The Pixel Prophecy</div>
@@ -258,20 +242,20 @@
     <div id="video-overlay" style="display: none;"></div>
 
 <audio id="bg-music" loop>
+    <source src="https://assets.mixkit.co/music/preview/mixkit-epic-fantasy-adventure-1747.mp3" type="audio/mpeg">
     <source src="audio/bg_fantasy_theme.mp3" type="audio/mpeg">
-    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" type="audio/mpeg">
 </audio>
 <audio id="sfx-add">
-    <source src="audio/sfx_add.mp3" type="audio/mpeg">
     <source src="https://assets.mixkit.co/active_storage/sfx/1126/1126-preview.mp3" type="audio/mpeg">
+    <source src="audio/sfx_add.mp3" type="audio/mpeg">
 </audio>
 <audio id="sfx-sub">
-    <source src="audio/sfx_sub.mp3" type="audio/mpeg">
     <source src="https://assets.mixkit.co/active_storage/sfx/1124/1124-preview.mp3" type="audio/mpeg">
+    <source src="audio/sfx_sub.mp3" type="audio/mpeg">
 </audio>
 <audio id="sfx-skill">
-    <source src="audio/sfx_skill.mp3" type="audio/mpeg">
     <source src="https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3" type="audio/mpeg">
+    <source src="audio/sfx_skill.mp3" type="audio/mpeg">
 </audio>
 
 <div id="top-wrapper" style="display: none;">
@@ -385,16 +369,26 @@
     }
 
     function startGame() {
+        initMusic();
         document.getElementById('intro-screen').style.display = 'none';
         document.getElementById('top-wrapper').style.display = 'flex';
         document.getElementById('bottom-info-bar').style.display = 'flex';
         document.getElementById('bg-video').style.display = 'block';
         document.getElementById('video-overlay').style.display = 'block';
+        document.getElementById('bg-video').play().catch(() => {});
         initGhosts();
         saveAndRender();
     }
 
     function showIntro() {
+        document.getElementById('intro-screen').style.display = 'flex';
+        document.getElementById('top-wrapper').style.display = 'none';
+        document.getElementById('bottom-info-bar').style.display = 'none';
+        document.getElementById('bg-video').style.display = 'none';
+        document.getElementById('video-overlay').style.display = 'none';
+        bgMusic.pause();
+        document.getElementById('bg-video').pause();
+    }
         document.getElementById('intro-screen').style.display = 'flex';
         document.getElementById('top-wrapper').style.display = 'none';
         document.getElementById('bottom-info-bar').style.display = 'none';
